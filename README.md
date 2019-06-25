@@ -1,4 +1,4 @@
-# Idoru-project
+# Idoru Test-project
 PLATFORM TO PURCHASE AND SELL COLLECTABLES CERTIFIED BY BLOCKCHAIN
 
 Vip2fan is a platform where celebrities - musicians, actresses, actors, artists, painters, photographers, elite athletes, etc. - can sell their works, services, collectables (memorabilia) within a secure ecosystem, certified by blockchain.
