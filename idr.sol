@@ -2,7 +2,7 @@ pragma solidity ^0.4.24;
 
 interface tokenRecipient { function receiveApproval(address _from, uint256 _value, address _token, bytes _extraData) external; }
 
-contract Idoru {
+contract IdoruTest {
     // Public variables of the token
     string public name;
     string public symbol;
@@ -25,13 +25,13 @@ contract Idoru {
      *
      * Initializes contract with initial supply tokens to the creator of the contract
      */
-    function Idoru(              
+    function IdoruTest(              
         
     ) public {
         totalSupply = 333000000 * 10 ** uint256(decimals);  // Update total supply with the decimal amount
         balanceOf[msg.sender] = totalSupply;                // Give the creator all initial tokens
-        name = "Idoru";                                   // Set the name for display purposes
-        symbol = "IDR";                               // Set the symbol for display purposes
+        name = "IdoruTest";                                   // Set the name for display purposes
+        symbol = "IDT";                               // Set the symbol for display purposes
     }
 
     /**
