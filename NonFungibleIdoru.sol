@@ -923,16 +923,17 @@ pragma solidity ^0.4.24;
 	  uint8 constant TITLE_MAX_LENGTH = 64;
 	  uint256 constant DESCRIPTION_MIN_LENGTH = 1;
 	  uint256 constant DESCRIPTION_MAX_LENGTH = 10000;
+	  address constant IDORU_ADDRESS = 0x55F55071f0ab1b80a4C785149af51E4158c4F5Ee;
 
 	  /*** DATA TYPES ***/
 
 	  /// Price set by contract owner for each token in Wei.
 	  /// @dev If you'd like a different price for each token type, you will
 	  ///   need to use a mapping like: `mapping(uint256 => uint256) tokenTypePrices;`
-	  uint256 currentPrice = 0;
+	  mapping(uint256 => uint256) tokenPrices ;
 
-	  /// The token type (1 for idea, 2 for belonging, etc)
-	  mapping(uint256 => uint256) tokenTypes;
+	  /// The token status (1 for selling, 2 for awaiting confirmation, 3 for sold)
+	  mapping(uint256 => uint256) tokenStatus;
 
 	  /// The title of the token
 	  mapping(uint256 => string) tokenTitles;
@@ -944,15 +945,16 @@ pragma solidity ^0.4.24;
 		// any init code when you deploy the contract would run here
 	  }
 
-	  /// Requires the amount of Ether be at least or more of the currentPrice
+	  /// Requires the amount of Ether be at least or more of the itemPrice
 	  /// @dev Creates an instance of an token and mints it to the purchaser
-	  /// @param _type The token type as an integer
+	  /// @param _status The token type as an integer
 	  /// @param _title The short title of the token
 	  /// @param _description Description of the token
-	  function buyToken (
-		uint256 _type,
+	  function createToken (
+		uint256 _status,
 		string _title,
-		string _description
+		string _description,
+		uint256 _itemPrice
 	  ) external payable {
 		bytes memory _titleBytes = bytes(_title);
 		require(_titleBytes.length >= TITLE_MIN_LENGTH, "Title is too short");
@@ -961,15 +963,16 @@ pragma solidity ^0.4.24;
 		bytes memory _descriptionBytes = bytes(_description);
 		require(_descriptionBytes.length >= DESCRIPTION_MIN_LENGTH, "Description is too short");
 		require(_descriptionBytes.length <= DESCRIPTION_MAX_LENGTH, "Description is too long");
-		require(msg.value >= currentPrice, "Amount of Ether sent too small");
+		require(msg.value >= _itemPrice, "Amount of Idorus sent too small");
 
 		uint256 index = allTokens.length + 1;
 
 		_mint(msg.sender, index);
 
-		tokenTypes[index] = _type;
+		tokenStatus[index] = _status;
 		tokenTitles[index] = _title;
-		tokenDescription[index] = _description;
+		tokenDescription[index] = _description;		
+		tokenPrices[index] = _itemPrice;
 
 		emit BoughtToken(msg.sender, index);
 	  }
@@ -994,34 +997,51 @@ pragma solidity ^0.4.24;
 		external
 		view
 		returns (
-		  uint256 tokenType_,
+		  uint256 tokenStatus_,
 		  string tokenTitle_,
-		  string tokenDescription_
+		  string tokenDescription_,
+		  uint256 tokenPrice_
 	  ) {
-		  tokenType_ = tokenTypes[_tokenId];
+		  tokenStatus_ = tokenStatus[_tokenId];
 		  tokenTitle_ = tokenTitles[_tokenId];
 		  tokenDescription_ = tokenDescription[_tokenId];
+		  tokenPrice_ = tokenPrices[_tokenId];
 	  }
 
 	  /// @notice Allows the owner of this contract to set the currentPrice for each token
-	  function setCurrentPrice(uint256 newPrice)
+	  function setItemPrice(uint256 _tokenId, uint256 _newPrice)
 		public
 		onlyOwner
 	  {
-		  currentPrice = newPrice;
+		  tokenPrices[_tokenId] = _newPrice;
 	  }
 
 	  /// @notice Returns the currentPrice for each token
-	  function getCurrentPrice()
+	  function getCurrentPrice(uint256 _tokenId)
 		external
 		view
 		returns (
 		uint256 price
 	  ) {
-		  price = currentPrice;
+		  price = tokenPrices[_tokenId];
 	  }
+	  
+	  /// @notice Sends a Token buy order, transferring idorus to contract address.
+	  function buyToken(uint256 _tokenId) 
+		public
+		{
+		  uint256 _price = tokenPrices[_tokenId];
+		  address _owner = ownerOf(_tokenId);
+		  IdoruTest idorus = IdoruTest(IDORU_ADDRESS);
+		  idorus.transfer(_owner, _price);
+	  }
+	  
 	  /// @notice allows the owner of this contract to destroy the contract
 	   function kill() public {
 		  if(msg.sender == owner) selfdestruct(owner);
 	   }  
+}
+
+contract IdoruTest {
+	function transfer(address _to, uint256 _value) public;
 }
